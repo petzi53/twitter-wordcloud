@@ -1,0 +1,119 @@
+---
+title: "my-wordcloud"
+author: "Peter Baumgartner"
+date: "2017/04/09"
+output:
+  word_document:
+    toc: yes
+    toc_depth: '3'
+  html_notebook:
+    toc: yes
+    toc_depth: 3
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+  html_document:
+    toc: yes
+    toc_depth: '3'
+---
+```{r label = "global-options", echo=FALSE, highlight=TRUE}
+knitr::opts_chunk$set(
+        message = F,
+        error = F,
+        warning = F,
+        comment = NA,
+        highlight = T,
+        prompt = T
+        )
+
+#Load required packages
+if (!require("twitteR"))
+        {install.packages("twitteR", repos = 'http://cran.wu.ac.at/')
+        library(twitteR)}
+if (!require("wordcloud"))
+        {install.packages("wordcloud", repos = 'http://cran.wu.ac.at/')
+        library(wordcloud)}
+if (!require("qdap"))
+        {install.packages("qdap", repos = 'http://cran.wu.ac.at/')
+        library(qdap)}
+if (!require("tm"))
+        {install.packages("tm", repos = 'http://cran.wu.ac.at/')
+        library(tm)}
+
+```
+***
+
+
+```{r label = "pb-wordcloud", echo=FALSE}
+
+#Change these to match your own keys, tokens and secrets
+consumerKey <-  "Insert your consumerKey" 
+consumerSecret <-  "Insert your consumerSecret" 
+AccessToken <- "Insert your AccessToken"
+AccessSecret <- "Insert your AccessSecret"
+
+setup_twitter_oauth(consumerKey, consumerSecret,AccessToken,AccessSecret)
+
+user = 'Insert the Twitter account without "@"'
+
+
+timeline = 
+        userTimeline(
+        user,
+        n = 3200, # this is the maximum number
+        maxID = NULL,
+        sinceID = NULL,
+        includeRts = TRUE,
+        excludeReplies = FALSE
+        )
+
+textlist <- sapply(timeline, function(x) x$text)
+
+#Strip URLS
+textlist = gsub("(f|ht)(tp)(s?)(://)(.*)[.|/](.*)", "", textlist)
+
+#strip @mentions
+textlist = gsub("@(.*)", "", textlist)
+
+#Strip punctuation
+textlist = gsub("[^[:alnum:] ]", " ", textlist)
+
+#Split into words
+words <- strsplit(textlist, "\\W+")
+
+#Remove common words
+german.stop.words <- tm::stopwords("german")
+english.stop.words <- tm::stopwords("english")
+words = rm_stopwords(words,
+        c(english.stop.words, german.stop.words, "rt", "amp"))
+
+
+#Get rid of empty elements
+words = words[lapply(words, length) > 0]
+
+#Flatten the list of lists
+words = unlist(words, recursive = FALSE)
+
+#Convert to a sorted frequency table
+words = sort(table(words), decreasing = T)
+freqs = as.vector(words)
+words = names(words)
+
+#experiment with different settings of the parameters
+if (require(RColorBrewer)) {
+		pal <- brewer.pal(9,"Blues") # sequential color palettes
+		pal <- pal[-(1:4)]           # for a one color (shaded) appearance
+		wordcloud(
+		        words, 
+		        freqs, 
+		        scale = c(4.5, .3),    # size of the wordcloud 
+		        min.freq = 6,          # high (5+) if there 
+		        max.words = 200,     
+		        random.order = FALSE,  # most important words in the center
+		        random.color = FALSE,  # just the color shades provided by RColorBrewer
+		                               # remove RcolorBrewer and set to TRUE
+		        rot.per = .15,         # percentage of words 90% rotated
+		        colors = pal)          # use shaded color palette from RColorBrewer
+	}
+
+```
