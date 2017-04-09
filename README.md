@@ -1,7 +1,7 @@
 # twitter-wordcloud
 Twitter wordcloud with English and German stopwords
 
-See for details my description in my [weblog](http://peter.baumgartner.name/2017/04/09/twitter-word-clouds-explained/).
+See for details of how to use my description in my weblog article: [Twitter word clouds explained](http://peter.baumgartner.name/2017/04/09/twitter-word-clouds-explained/).
 
 To see files with the file extension ".html" directly in GitHub you need to follow on of the two alternate procedures:
 
